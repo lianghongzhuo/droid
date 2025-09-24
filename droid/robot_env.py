@@ -31,8 +31,7 @@ class RobotEnv(gym.Env):
         self.control_hz = 15
 
         if nuc_ip == "":
-            from droid.droid.franka.robot import FrankaRobot
-            # from franka.robot import FrankaRobot
+            from franka.robot import FrankaRobot
             self._robot = FrankaRobot()
             self._robot.launch_robot()
         # else:
