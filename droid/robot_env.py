@@ -1,13 +1,13 @@
 from copy import deepcopy
 
-import gym
+import gymnasium as gym
 import numpy as np
 
-from droid.calibration.calibration_utils import load_calibration_info
+# from droid.calibration.calibration_utils import load_calibration_info
 from droid.camera_utils.info import camera_type_dict
-from droid.camera_utils.wrappers.multi_camera_wrapper import MultiCameraWrapper
+# from droid.camera_utils.wrappers.multi_camera_wrapper import MultiCameraWrapper
 from droid.misc.parameters import hand_camera_id, nuc_ip
-from droid.misc.server_interface import ServerInterface
+# from droid.misc.server_interface import ServerInterface
 from droid.misc.time import time_ms
 from droid.misc.transformations import change_pose_frame
 
@@ -30,17 +30,19 @@ class RobotEnv(gym.Env):
         self.DoF = 7 if ("cartesian" in action_space) else 8
         self.control_hz = 15
 
-        if nuc_ip is None:
-            from franka.robot import FrankaRobot
-
+        if nuc_ip == "":
+            from droid.droid.franka.robot import FrankaRobot
+            # from franka.robot import FrankaRobot
             self._robot = FrankaRobot()
-        else:
-            self._robot = ServerInterface(ip_address=nuc_ip)
+            self._robot.launch_robot()
+        # else:
+        #     self._robot = ServerInterface(ip_address=nuc_ip)
 
         # Create Cameras
-        self.camera_reader = MultiCameraWrapper(camera_kwargs)
-        self.calibration_dict = load_calibration_info()
-        self.camera_type_dict = camera_type_dict
+        # self.camera_reader = MultiCameraWrapper(camera_kwargs)
+        # self.calibration_dict = load_calibration_info()
+        # self.calibration_dict = None
+        # self.camera_type_dict = camera_type_dict
 
         # Reset Robot
         if do_reset:
@@ -113,21 +115,21 @@ class RobotEnv(gym.Env):
         obs_dict["robot_state"] = state_dict
         obs_dict["timestamp"]["robot_state"] = timestamp_dict
 
-        # Camera Readings #
-        camera_obs, camera_timestamp = self.read_cameras()
-        obs_dict.update(camera_obs)
-        obs_dict["timestamp"]["cameras"] = camera_timestamp
+        # # Camera Readings #
+        # camera_obs, camera_timestamp = self.read_cameras()
+        # obs_dict.update(camera_obs)
+        # obs_dict["timestamp"]["cameras"] = camera_timestamp
 
-        # Camera Info #
-        obs_dict["camera_type"] = deepcopy(self.camera_type_dict)
-        extrinsics = self.get_camera_extrinsics(state_dict)
-        obs_dict["camera_extrinsics"] = extrinsics
+        # # Camera Info #
+        # obs_dict["camera_type"] = deepcopy(self.camera_type_dict)
+        # extrinsics = self.get_camera_extrinsics(state_dict)
+        # obs_dict["camera_extrinsics"] = extrinsics
 
-        intrinsics = {}
-        for cam in self.camera_reader.camera_dict.values():
-            cam_intr_info = cam.get_intrinsics()
-            for (full_cam_id, info) in cam_intr_info.items():
-                intrinsics[full_cam_id] = info["cameraMatrix"]
-        obs_dict["camera_intrinsics"] = intrinsics
+        # intrinsics = {}
+        # for cam in self.camera_reader.camera_dict.values():
+        #     cam_intr_info = cam.get_intrinsics()
+        #     for (full_cam_id, info) in cam_intr_info.items():
+        #         intrinsics[full_cam_id] = info["cameraMatrix"]
+        # obs_dict["camera_intrinsics"] = intrinsics
 
         return obs_dict
